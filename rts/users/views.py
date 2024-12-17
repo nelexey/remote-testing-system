@@ -1,8 +1,9 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from .forms import CustomUserCreationForm, CustomAuthenticationForm
+from .models import CustomUser
 
 # Регистрация пользователя
 def register(request):
@@ -36,4 +37,23 @@ def login_view(request):
 # Выход пользователя
 def logout_view(request):
     logout(request)
-    return redirect('home')
+    return redirect('index')
+
+@login_required
+def home(request):
+    return redirect('user_profile', username=request.user.username)
+
+
+def user_profile(request, username):
+    user = get_object_or_404(CustomUser, username=username)
+    is_owner = request.user.is_authenticated and request.user.username == username
+    context = {
+        'user_profile': {
+            'username': user.username,
+            'email': user.email,
+            'role': user.get_role_display(),
+            'updated_at': user.updated_at,
+        },
+        'is_owner': is_owner
+    }
+    return render(request, 'users/profile.html', context)

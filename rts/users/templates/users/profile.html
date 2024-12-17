@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user_profile.username }}'s Profile</title>
+</head>
+<body>
+    <h1>Profile of {{ user_profile.username }}</h1>
+    <p><strong>Email:</strong> {{ user_profile.email }}</p>
+    <p><strong>Role:</strong> {{ user_profile.role }}</p>
+    <p><strong>Last updated:</strong> {{ user_profile.updated_at }}</p>
+
+    {% if is_owner %}
+        <button onclick="window.location.href='{% url 'logout' %}'">Logout</button>
+    {% endif %}
+</body>
+</html>
