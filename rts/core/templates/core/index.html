@@ -1,9 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Домашняя страница</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная страница</title>
 </head>
 <body>
-    <h1>Добро пожаловать на домашнюю страницу!</h1>
+    <h1>Добро пожаловать на сайт!</h1>
+
+    {% if is_authenticated %}
+        <p>Привет, {{ username }}!</p>
+        <p>Ваша роль: {{ role }}</p>
+    {% else %}
+        <p>Вы не авторизованы. <a href="{% url 'login' %}">Войти</a></p>
+    {% endif %}
 </body>
 </html>

@@ -1,33 +1,46 @@
-from django.contrib.auth.decorators import user_passes_test
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .forms import TestForm
 from tests.models import Test
+from .decorators import role_required
 
-# Проверка роли пользователя
-def is_tester(user):
-    return user.is_authenticated and (user.role == 'tester' or user.is_superuser)
-
-@user_passes_test(is_tester)
+@role_required(['tester', 'admin'])
 def create_test(request):
     if request.method == 'POST':
-        # Логика создания теста
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        test = Test.objects.create(name=name, description=description, creator=request.user)
-        return redirect('tester_panel:create_test')
-    return render(request, 'tester_panel/create.html')
+        form = TestForm(request.POST)
+        if form.is_valid():
+            test = form.save(commit=False)
+            test.author = request.user
+            test.save()
+            messages.success(request, "Test created successfully.")
+            return redirect('tester_panel:test_list')
+    else:
+        form = TestForm()
+    return render(request, 'tester_panel/create.html', {'form': form})
 
-@user_passes_test(is_tester)
-def edit_test(request, test_id):
-    test = get_object_or_404(Test, id=test_id, creator=request.user)
+@role_required(['tester', 'admin'])
+def edit_test(request, pk):
+    test = get_object_or_404(Test, pk=pk, author=request.user)
     if request.method == 'POST':
-        test.name = request.POST.get('name')
-        test.description = request.POST.get('description')
-        test.save()
-        return redirect('tester_panel:create_test')
-    return render(request, 'tester_panel/edit.html', {'test': test})
+        form = TestForm(request.POST, instance=test)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Test updated successfully.")
+            return redirect('tester_panel:test_list')
+    else:
+        form = TestForm(instance=test)
+    return render(request, 'tester_panel/edit.html', {'form': form, 'test': test})
 
-@user_passes_test(is_tester)
-def delete_test(request, test_id):
-    test = get_object_or_404(Test, id=test_id, creator=request.user)
-    test.delete()
-    return redirect('tester_panel:create_test')
+@role_required(['tester', 'admin'])
+def delete_test(request, pk):
+    test = get_object_or_404(Test, pk=pk, author=request.user)
+    if request.method == 'POST':
+        test.delete()
+        messages.success(request, "Test deleted successfully.")
+        return redirect('tester_panel:test_list')
+    return render(request, 'tester_panel/delete.html', {'test': test})
+
+@role_required(['tester', 'admin'])
+def test_list(request):
+    tests = Test.objects.filter(author=request.user)
+    return render(request, 'tester_panel/list.html', {'tests': tests})
