@@ -1,46 +1,81 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import TestForm
+from django.http import JsonResponse
 from tests.models import Test
-from .decorators import role_required
+from tests.forms import TestCreationForm
 
-@role_required(['tester', 'admin'])
-def create_test(request):
+
+@login_required
+def tester_panel(request):
+    """Панель управления тестами для тестера"""
+    if request.user.role != 'tester':
+        messages.error(request, 'Доступ запрещен')
+        return redirect('core:home')
+
+    tests = Test.objects.filter(owner=request.user)
+    return render(request, 'tester_panel/panel.html', {'tests': tests})
+
+
+@login_required
+def create_test(request, test_id=None):
+    """Создание нового теста"""
+    if request.user.role != 'tester':
+        return redirect('core:home')
+
     if request.method == 'POST':
-        form = TestForm(request.POST)
+        form = TestCreationForm(request.POST, owner=request.user)
         if form.is_valid():
-            test = form.save(commit=False)
-            test.author = request.user
+            test = form.save()
+            # Обработка вопросов из POST-запроса
+            # questions_data = process_questions_data(request.POST)  # Нужно реализовать
+            # test.test = questions_data
             test.save()
-            messages.success(request, "Test created successfully.")
-            return redirect('tester_panel:test_list')
+            return redirect('tester_panel:tester_panel')
     else:
-        form = TestForm()
-    return render(request, 'tester_panel/create.html', {'form': form})
+        form = TestCreationForm(owner=request.user)
 
-@role_required(['tester', 'admin'])
-def edit_test(request, pk):
-    test = get_object_or_404(Test, pk=pk, author=request.user)
+    return render(request, 'tester_panel/create_test.html', {'form': form})
+
+
+@login_required
+def edit_test(request, test_id):
+    """Редактирование существующего теста"""
+    test = get_object_or_404(Test, id=test_id, owner=request.user)
+
     if request.method == 'POST':
-        form = TestForm(request.POST, instance=test)
+        form = TestCreationForm(request.POST, instance=test, owner=request.user)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Test updated successfully.")
-            return redirect('tester_panel:test_list')
+            test = form.save()
+            # questions_data = process_questions_data(request.POST)
+            # test.test = questions_data
+            test.save()
+            return redirect('tester_panel:tester_panel')
     else:
-        form = TestForm(instance=test)
-    return render(request, 'tester_panel/edit.html', {'form': form, 'test': test})
+        form = TestCreationForm(instance=test, owner=request.user)
 
-@role_required(['tester', 'admin'])
-def delete_test(request, pk):
-    test = get_object_or_404(Test, pk=pk, author=request.user)
+    return render(request, 'tester_panel/edit_test.html', {
+        'form': form,
+        'test': test
+    })
+
+
+@login_required
+def delete_test_list(request):
+    """Список тестов для удаления"""
+    if request.user.role != 'tester':
+        return redirect('core:home')
+
+    tests = Test.objects.filter(owner=request.user)
+    return render(request, 'tester_panel/delete_list.html', {'tests': tests})
+
+
+@login_required
+def delete_test(request, test_id):
+    """Удаление теста"""
     if request.method == 'POST':
+        test = get_object_or_404(Test, id=test_id, owner=request.user)
         test.delete()
-        messages.success(request, "Test deleted successfully.")
-        return redirect('tester_panel:test_list')
-    return render(request, 'tester_panel/delete.html', {'test': test})
-
-@role_required(['tester', 'admin'])
-def test_list(request):
-    tests = Test.objects.filter(author=request.user)
-    return render(request, 'tester_panel/list.html', {'tests': tests})
+        messages.success(request, 'Тест успешно удален')
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=405)

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Прохождение теста{% endblock %}
+
+{% block content %}
+    <h1>{{ test.title }} - Попытка {{ attempt_number }}</h1>
+    <div id="timer">Осталось времени: {{ test.duration }}:00</div>
+
+    <form method="post" id="test-form">
+        {% csrf_token %}
+        {% for question in test.test.questions %}
+            <div class="question">
+                <h3>{{ forloop.counter }}. {{ question.text }}</h3>
+                {% if question.type == 'single' %}
+                    {% for answer in question.answers %}
+                        <label>
+                            <input type="radio" name="q{{ forloop.parentloop.counter }}" 
+                                   value="{{ forloop.counter0 }}">
+                            {{ answer }}
+                        </label><br>
+                    {% endfor %}
+                {% elif question.type == 'multiple' %}
+                    {% for answer in question.answers %}
+                        <label>
+                            <input type="checkbox" name="q{{ forloop.parentloop.counter }}" 
+                                   value="{{ forloop.counter0 }}">
+                            {{ answer }}
+                        </label><br>
+                    {% endfor %}
+                {% else %}
+                    <textarea name="q{{ forloop.counter }}"></textarea>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit">Завершить тест</button>
+    </form>
+{% endblock %}

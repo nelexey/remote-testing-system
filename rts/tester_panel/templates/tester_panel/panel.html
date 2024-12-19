@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Панель тестера{% endblock %}
+
+{% block content %}
+    <h1>Панель управления тестами</h1>
+    <a href="{% url 'tester_panel:create_test' %}">Создать новый тест</a>
+    <a href="{% url 'tester_panel:delete_test_list' %}">Управление тестами</a>
+
+    <h2>Ваши тесты:</h2>
+    <ul>
+    {% for test in tests %}
+        <li>
+            {{ test.title }}
+            ({{ test.get_difficulty_display }})
+            <a href="{% url 'tester_panel:edit_test' test.id %}">Редактировать</a>
+            {% if test.is_published %}
+                <span>Опубликован</span>
+            {% else %}
+                <span>Черновик</span>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>У вас пока нет тестов</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

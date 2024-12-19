@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Создание теста{% endblock %}
+
+{% block content %}
+    <h1>Создание нового теста</h1>
+    <form method="post" id="test-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        
+        <div id="questions-container">
+            <!-- Сюда будут добавляться вопросы через JavaScript -->
+        </div>
+        
+        <button type="button" id="add-question">Добавить вопрос</button>
+        <button type="submit">Сохранить тест</button>
+    </form>
+{% endblock %}

@@ -13,4 +13,4 @@ def home(request):
         'username': user.username if user.is_authenticated else None,
         'role': user.role if user.is_authenticated and hasattr(user, 'role') else None,
     }
-    return render(request, 'core/index.html', context)
+    return render(request, 'core/home.html', context)

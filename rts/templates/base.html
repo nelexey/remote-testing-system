@@ -1,32 +1,38 @@
-{% load static %}
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}My Site{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <title>{% block title %}Test Platform{% endblock %}</title>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="{% url 'home' %}">Home</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'logout' %}">Logout</a>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'register' %}">Register</a>
+<header>
+    <nav>
+        <a href="{% url 'core:home' %}">Главная</a>
+        <a href="{% url 'tests:test_list' %}">Тесты</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'users:user_home' %}">Мой профиль</a>
+            {% if user.role == 'tester' %}
+                <a href="{% url 'tester_panel:tester_panel' %}">Панель тестера</a>
             {% endif %}
-        </nav>
-    </header>
+            <a href="{% url 'users:logout' %}">Выйти</a>
+        {% else %}
+            <a href="{% url 'users:login' %}">Войти</a>
+            <a href="{% url 'users:register' %}">Регистрация</a>
+        {% endif %}
+    </nav>
+</header>
 
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+<main>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
 
-    <footer>
-        <p>© 2024 My Site</p>
-    </footer>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <p>© 2024 Test Platform</p>
+</footer>
 </body>
 </html>

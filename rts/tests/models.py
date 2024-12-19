@@ -1,44 +1,46 @@
 from django.db import models
-from django.conf import settings
+from django.utils import timezone
+
 
 class Test(models.Model):
-    owner = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='tests'
-    )
+    DIFFICULTY_CHOICES = [
+        ('easy', 'Easy'),
+        ('medium', 'Medium'),
+        ('hard', 'Hard')
+    ]
+
+    owner = models.ForeignKey('users.User', on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    test_data = models.JSONField()  # JSON для хранения вопросов и ответов
-    difficulty = models.CharField(
-        max_length=10,
-        choices=[('easy', 'Easy'), ('medium', 'Medium'), ('hard', 'Hard')],
-        default='medium'
-    )
-    attempts_allowed = models.PositiveIntegerField(default=1)
-    time_created = models.DateTimeField(auto_now_add=True)
+    test = models.JSONField()
+    difficulty = models.CharField(max_length=50, choices=DIFFICULTY_CHOICES, default='medium')
+    duration = models.IntegerField(null=True)  # in minutes
+    attempts_allowed = models.IntegerField(default=1)
+    is_published = models.BooleanField(default=False)
+    category = models.CharField(max_length=255, blank=True)
+    time_created = models.DateTimeField(default=timezone.now)
     time_updated = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.title
+    class Meta:
+        db_table = 'tests'
 
 
-class Statistics(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='statistics'
-    )
-    test = models.ForeignKey(
-        Test,
-        on_delete=models.CASCADE,
-        related_name='statistics'
-    )
+class TestStatistics(models.Model):
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    test = models.ForeignKey(Test, on_delete=models.CASCADE)
     result = models.IntegerField()
     max_result = models.IntegerField()
-    time_spent = models.DurationField()
-    date_taken = models.DateTimeField(auto_now_add=True)
-    passed = models.BooleanField(default=False)
+    time_spent = models.IntegerField(null=True)  # in seconds
+    date_taken = models.DateTimeField(default=timezone.now)
+    passed = models.BooleanField()
+    attempt_number = models.IntegerField(default=1)
+    percentage = models.FloatField(null=True)  # We'll calculate this in save()
 
-    def __str__(self):
-        return f"{self.user.username} - {self.test.title}"
+    def save(self, *args, **kwargs):
+        if self.result is not None and self.max_result:
+            self.percentage = (self.result * 100.0) / self.max_result
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'statistics'
+        unique_together = ('user', 'test', 'attempt_number')

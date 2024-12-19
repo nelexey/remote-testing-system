@@ -1,59 +1,79 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseForbidden
-from .forms import CustomUserCreationForm, CustomAuthenticationForm
-from .models import CustomUser
+from django.shortcuts import render
+from tests.models import Test
 
-# Регистрация пользователя
-def register(request):
+
+def home(request):
+    """Домашняя страница для неавторизованных пользователей"""
+    recent_tests = Test.objects.filter(is_published=True).order_by('-time_created')[:5]
+    return render(request, 'core/home.html', {'recent_tests': recent_tests})
+
+
+# users/views.py
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .forms import UserRegistrationForm, UserLoginForm
+from .models import User
+from tests.models import TestStatistics
+
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('users:user_home')
+
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.role = 'user'  # По умолчанию роль — user
-            user.save()
+            user = form.save()
             login(request, user)
-            return redirect('home')  # Перенаправляем на главную страницу
+            messages.success(request, 'Регистрация успешна!')
+            return redirect('users:user_home')
     else:
-        form = CustomUserCreationForm()
+        form = UserRegistrationForm()
     return render(request, 'users/register.html', {'form': form})
 
-# Авторизация пользователя
+
 def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('users:user_home')
+
     if request.method == 'POST':
-        form = CustomAuthenticationForm(data=request.POST)
+        form = UserLoginForm(data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                return redirect('home')  # Перенаправляем на главную страницу
+            user = form.get_user()
+            login(request, user)
+            return redirect('users:user_home')
     else:
-        form = CustomAuthenticationForm()
+        form = UserLoginForm()
     return render(request, 'users/login.html', {'form': form})
 
-# Выход пользователя
+
 def logout_view(request):
     logout(request)
-    return redirect('index')
+    return redirect('core:home')
+
 
 @login_required
-def home(request):
-    return redirect('user_profile', username=request.user.username)
+def user_home(request):
+    """Домашняя страница авторизованного пользователя"""
+    user_stats = TestStatistics.objects.filter(user=request.user).select_related('test')
+    context = {
+        'recent_attempts': user_stats.order_by('-date_taken')[:5],
+        'total_tests_taken': user_stats.count(),
+        # 'average_score': user_stats.aggregate(Avg('percentage'))['percentage__avg']
+    }
+    return render(request, 'users/home.html', context)
 
 
 def user_profile(request, username):
-    user = get_object_or_404(CustomUser, username=username)
-    is_owner = request.user.is_authenticated and request.user.username == username
+    """Страница профиля пользователя"""
+    user = get_object_or_404(User, username=username)
+    stats = TestStatistics.objects.filter(user=user).select_related('test')
     context = {
-        'user_profile': {
-            'username': user.username,
-            'email': user.email,
-            'role': user.get_role_display(),
-            'updated_at': user.updated_at,
-        },
-        'is_owner': is_owner
+        'profile_user': user,
+        'stats': stats,
+        'tests_taken': stats.count(),
+        # 'average_score': stats.aggregate(Avg('percentage'))['percentage__avg']
     }
     return render(request, 'users/profile.html', context)

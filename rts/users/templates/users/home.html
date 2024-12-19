@@ -1,10 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome home!</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block title %}Мой профиль{% endblock %}
+
+{% block content %}
+    <h1>Добро пожаловать, {{ user.username }}!</h1>
+    <h2>Ваша статистика:</h2>
+    <p>Всего тестов пройдено: {{ total_tests_taken }}</p>
+    <p>Средний балл: {{ average_score|default:"0"|floatformat:1 }}%</p>
+    
+    <h3>Последние попытки:</h3>
+    <ul>
+    {% for attempt in recent_attempts %}
+        <li>
+            {{ attempt.test.title }} - {{ attempt.percentage|floatformat:1 }}%
+            ({{ attempt.date_taken|date:"d.m.Y" }})
+        </li>
+    {% empty %}
+        <li>Нет пройденных тестов</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

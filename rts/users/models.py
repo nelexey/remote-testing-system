@@ -1,30 +1,45 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     ROLE_CHOICES = [
         ('user', 'User'),
         ('tester', 'Tester'),
-        ('admin', 'Admin'),
+        ('admin', 'Admin')
+    ]
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+        ('banned', 'Banned')
     ]
 
-    email = models.EmailField(unique=True)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='user')
-    updated_at = models.DateTimeField(auto_now=True)
-
     groups = models.ManyToManyField(
-        "auth.Group",
-        related_name="customuser_groups",
+        'auth.Group',
+        verbose_name='groups',
         blank=True,
-        help_text="The groups this user belongs to."
+        related_name='custom_user_set',  # Добавлено это
+        help_text='The groups this user belongs to.'
     )
     user_permissions = models.ManyToManyField(
-        "auth.Permission",
-        related_name="customuser_permissions",
+        'auth.Permission',
+        verbose_name='user permissions',
         blank=True,
-        help_text="Specific permissions for this user."
+        related_name='custom_user_set',  # Добавлено это
+        help_text='Specific permissions for this user.'
     )
 
-    def __str__(self):
-        return self.username
+    email = models.EmailField(unique=True)
+    name = models.CharField(max_length=255, blank=True)
+    surname = models.CharField(max_length=255, blank=True)
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+    avatar_url = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+    email_verified = models.BooleanField(default=False)
+    reset_token = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        db_table = 'users'
