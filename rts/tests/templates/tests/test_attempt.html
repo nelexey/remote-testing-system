@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Прохождение теста{% endblock %}
 
 {% block content %}
     <h1>{{ test.title }} - Попытка {{ attempt_number }}</h1>
-    <div id="timer">Осталось времени: {{ test.duration }}:00</div>
+    <div id="timer" class="timer">Осталось времени: {{ test.duration }}:00</div>
 
     <form method="post" id="test-form">
         {% csrf_token %}
@@ -14,7 +15,7 @@
                 {% if question.type == 'single' %}
                     {% for answer in question.answers %}
                         <label>
-                            <input type="radio" name="q{{ forloop.parentloop.counter }}" 
+                            <input type="radio" name="q{{ forloop.parentloop.counter }}"
                                    value="{{ forloop.counter0 }}">
                             {{ answer }}
                         </label><br>
@@ -22,7 +23,7 @@
                 {% elif question.type == 'multiple' %}
                     {% for answer in question.answers %}
                         <label>
-                            <input type="checkbox" name="q{{ forloop.parentloop.counter }}" 
+                            <input type="checkbox" name="q{{ forloop.parentloop.counter }}"
                                    value="{{ forloop.counter0 }}">
                             {{ answer }}
                         </label><br>
@@ -34,4 +35,17 @@
         {% endfor %}
         <button type="submit">Завершить тест</button>
     </form>
+    <input type="hidden" id="test-duration" value="{{ test.duration }}">
+
+    {% block extra_js %}
+    <script type="module">
+        import TestTimer from '{% static "js/testTimer.js" %}';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const duration = parseInt(document.getElementById('test-duration').value);
+            const timer = new TestTimer(duration, 'test-form', 'timer');
+            timer.init();
+        });
+    </script>
+    {% endblock %}
 {% endblock %}
