@@ -30,7 +30,23 @@ class UserRegistrationForm(UserCreationForm):
 
 
 class UserLoginForm(AuthenticationForm):
-    username = forms.CharField(label='Имя пользователя или Email')
+    username = forms.CharField(
+        label='>>> login или Email:',
+        widget=forms.TextInput(attrs={'class': 'login-input'}),
+    )
+    password = forms.CharField(
+        label='>>> Пароль:',
+        widget=forms.PasswordInput(attrs={'class': 'login-input'}),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Добавляем класс ко всем меткам формы
+        for field_name, field in self.fields.items():
+            field.widget.attrs.update({'class': 'login-input'})
+            field.label_suffix = ''  # Убираем двоеточие после метки
+            self.fields[field_name].widget.attrs.update({'class': 'login-input'})
+            self.fields[field_name].label_tag = lambda: f'<label class="login-label">{field.label}</label>'
 
     def clean_username(self):
         username = self.cleaned_data.get('username')

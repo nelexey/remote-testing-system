@@ -1,11 +1,92 @@
-.visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
+/* Global Styles */
+body {
+    background-color: #000000; /* Фон страницы (чёрный) */
+    color: #ffffff; /* Основной цвет текста */
+    font-family: "IBM Plex Mono", serif;
+    margin: 0;
     padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    /*color: #ffffff;*/
+    margin: 0;
+}
+
+p {
+    color: #cccccc; /* Вторичный цвет текста */
+    line-height: 1.5;
+}
+
+a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #ff8400;
+}
+
+a:hover {
+    color: #cccccc;
+}
+
+
+button:hover {
+    background-color: #e0e0e0; /* Эффект при наведении */
+}
+
+
+.text-center {
+    text-align: center;
+}
+
+.text-bold {
+    font-weight: bold;
+}
+
+input {
+    all: unset;
+    box-sizing: border-box;
+
+    background-color: transparent;
+    color: black;
+    border: 2px solid black;
+    border-radius: 5px;
+
+    padding: 0 4px;
+
+    &::placeholder {
+        color: gray;
+    }
+
+/ / Стили при фокусе &: focus {
+    outline: none;
+    border-color: darkgray;
+}
+}
+
+button {
+/ / Сброс стилей all: unset;
+    box-sizing: border-box;
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+
+/ / Базовые стили background-color: transparent;
+    color: black;
+    border: 2px solid black;
+    border-radius: 5px;
+    padding: 8px 16px;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+
+/ / Стили при наведении &: hover {
+    background-color: black;
+    color: white;
+} / / Стили при нажатии &: active {
+    background-color: darkgray;
+} / / Стили при фокусе &: focus {
+    outline: none;
+    border-color: gray;
+}
 }
