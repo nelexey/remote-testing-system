@@ -1,16 +1,6 @@
-from django.shortcuts import render
-from tests.models import Test
-
-
-def home(request):
-    """Домашняя страница для неавторизованных пользователей"""
-    recent_tests = Test.objects.filter(is_published=True).order_by('-time_created')[:5]
-    return render(request, 'core/home.html', {'recent_tests': recent_tests})
-
-
-# users/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout
+from django.db.models import Avg
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import UserRegistrationForm, UserLoginForm
@@ -56,24 +46,23 @@ def logout_view(request):
 
 @login_required
 def user_home(request):
-    """Домашняя страница авторизованного пользователя"""
     user_stats = TestStatistics.objects.filter(user=request.user).select_related('test')
+
     context = {
         'recent_attempts': user_stats.order_by('-date_taken')[:5],
         'total_tests_taken': user_stats.count(),
-        # 'average_score': user_stats.aggregate(Avg('percentage'))['percentage__avg']
+        'average_score': user_stats.aggregate(Avg('percentage'))['percentage__avg']
     }
     return render(request, 'users/home.html', context)
 
 
 def user_profile(request, username):
-    """Страница профиля пользователя"""
     user = get_object_or_404(User, username=username)
     stats = TestStatistics.objects.filter(user=user).select_related('test')
     context = {
         'profile_user': user,
         'stats': stats,
         'tests_taken': stats.count(),
-        # 'average_score': stats.aggregate(Avg('percentage'))['percentage__avg']
+        'average_score': stats.aggregate(Avg('percentage'))['percentage__avg']
     }
     return render(request, 'users/profile.html', context)

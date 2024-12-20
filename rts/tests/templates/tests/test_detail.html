@@ -13,11 +13,11 @@
     {% if attempts_left > 0 %}
         <a href="{% url 'tests:test_attempt' test.id attempts_left %}">Начать тест</a>
     {% else %}
-        <p>Вы исчерпали все попытки</p>
+        <p>Попытки закончились</p>
     {% endif %}
 
     {% if attempts %}
-        <h2>Ваши попытки:</h2>
+        <h2>Попытки:</h2>
         <ul>
         {% for attempt in attempts %}
             <li>

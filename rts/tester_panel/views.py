@@ -9,7 +9,6 @@ import json
 
 @login_required
 def tester_panel(request):
-    """Панель управления тестами для тестера"""
     if request.user.role != 'tester':
         messages.error(request, 'Доступ запрещен')
         return redirect('core:home')
@@ -20,7 +19,6 @@ def tester_panel(request):
 
 @login_required
 def create_test(request, test_id=None):
-    """Создание нового теста"""
     if request.user.role != 'tester':
         messages.error(request, 'Доступ запрещен')
         return redirect('core:home')
@@ -53,7 +51,6 @@ def create_test(request, test_id=None):
 
 @login_required
 def edit_test(request, test_id):
-    """Редактирование существующего теста"""
     test = get_object_or_404(Test, id=test_id, owner=request.user)
 
     if request.method == 'POST':
@@ -62,10 +59,8 @@ def edit_test(request, test_id):
             test = form.save(commit=False)
 
             try:
-                # Получаем JSON-данные теста из формы
                 test_data = json.loads(request.POST.get('test_json', '{}'))
 
-                # Проверяем наличие вопросов
                 if not test_data.get('questions'):
                     messages.error(request, 'Тест должен содержать хотя бы один вопрос')
                     return render(request, 'tester_panel/edit_test.html', {
@@ -73,7 +68,6 @@ def edit_test(request, test_id):
                         'test': test
                     })
 
-                # Проверяем структуру каждого вопроса
                 for question in test_data['questions']:
                     if not all(key in question for key in ['text', 'type', 'points']):
                         messages.error(request, 'Некорректная структура вопросов')
@@ -82,7 +76,6 @@ def edit_test(request, test_id):
                             'test': test
                         })
 
-                    # Проверяем наличие вариантов ответов для radio и checkbox
                     if question['type'] in ['radio', 'checkbox']:
                         if not question.get('variants') or not question.get('correct'):
                             messages.error(request, 'Не указаны варианты ответов или правильный ответ')
@@ -91,7 +84,6 @@ def edit_test(request, test_id):
                                 'test': test
                             })
 
-                # Сохраняем JSON в поле test
                 test.test = test_data
                 test.save()
 
@@ -115,7 +107,6 @@ def edit_test(request, test_id):
 
 @login_required
 def delete_test_list(request):
-    """Список тестов для удаления"""
     if request.user.role != 'tester':
         messages.error(request, 'Доступ запрещен')
         return redirect('core:home')
@@ -126,7 +117,6 @@ def delete_test_list(request):
 
 @login_required
 def delete_test(request, test_id):
-    """Удаление теста"""
     if request.method == 'POST':
         test = get_object_or_404(Test, id=test_id, owner=request.user)
 
@@ -145,6 +135,5 @@ def delete_test(request, test_id):
 
 @login_required
 def get_test_json(request, test_id):
-    """Получение JSON-структуры теста для редактирования"""
     test = get_object_or_404(Test, id=test_id, owner=request.user)
     return JsonResponse(test.test)

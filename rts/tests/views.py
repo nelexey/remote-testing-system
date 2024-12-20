@@ -7,10 +7,8 @@ from django.db.models import Q
 
 
 def test_list(request):
-    """Страница со списком всех опубликованных тестов"""
     tests = Test.objects.filter(is_published=True).select_related('owner')
 
-    # Фильтрация и поиск
     category = request.GET.get('category')
     difficulty = request.GET.get('difficulty')
     search = request.GET.get('search')
@@ -26,8 +24,8 @@ def test_list(request):
 
 
 def test_detail(request, test_id):
-    """Страница отдельного теста"""
     test = get_object_or_404(Test, id=test_id, is_published=True)
+
     if request.user.is_authenticated:
         attempts = TestStatistics.objects.filter(user=request.user, test=test)
         attempts_left = test.attempts_allowed - attempts.count()
@@ -51,7 +49,7 @@ def calculate_test_result(test, answers):
     for idx, question in enumerate(test_data['questions']):
         q_num = idx
         q_type = question.get('type', 'unknown')
-        q_points = question.get('points', 1)  # Default to 1 point if not specified
+        q_points = question.get('points', 1)
         correct_answers = question.get('answers', [])
 
         if q_type == 'text':
@@ -65,7 +63,7 @@ def calculate_test_result(test, answers):
                 if user_answer_int in correct_answers:
                     total_score += q_points
             except ValueError:
-                pass  # Invalid input, do not award points
+                pass
         elif q_type == 'checkbox':
             user_answers = answers.getlist(f'q{q_num}', [])
             try:
@@ -73,9 +71,9 @@ def calculate_test_result(test, answers):
                 if set(user_answers_int) == set(correct_answers):
                     total_score += q_points
             except ValueError:
-                pass  # Invalid input, do not award points
+                pass
         else:
-            pass  # Handle unknown question types, if necessary
+            pass
 
         max_score += q_points
 
@@ -91,7 +89,7 @@ def test_attempt(request, test_id, attempt):
     test = get_object_or_404(Test, id=test_id, is_published=True)
     attempts = TestStatistics.objects.filter(user=request.user.id, test=test).count()
     if attempts >= test.attempts_allowed:
-        messages.error(request, 'Exceeded maximum number of attempts')
+        messages.error(request, 'Достигнут максимальный лимит попыток')
         return redirect('tests:test_detail', test_id=test_id)
 
     if request.method == 'POST':
@@ -107,7 +105,7 @@ def test_attempt(request, test_id, attempt):
             passed=passed,
             attempt_number=attempts + 1
         )
-        messages.success(request, f'Your score is {result["score"]}/{result["max_score"]}')
+        messages.success(request, f'Твой результат: {result["score"]}/{result["max_score"]}')
         return redirect('tests:test_detail', test_id=test_id)
 
     context = {
