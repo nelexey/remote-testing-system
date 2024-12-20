@@ -12,40 +12,41 @@
         {% for question in test.test.questions %}
             <div class="question">
                 <h3>{{ forloop.counter }}. {{ question.text }}</h3>
-                {% if question.type == 'single' %}
-                    {% for answer in question.answers %}
+                {% if question.type == 'radioButton' %}
+                    {% for variant in question.variants %}
                         <label>
-                            <input type="radio" name="q{{ forloop.parentloop.counter }}"
+                            <input type="radio" name="q{{ forloop.parentloop.counter0 }}"
                                    value="{{ forloop.counter0 }}">
-                            {{ answer }}
+                            {{ variant }}
                         </label><br>
                     {% endfor %}
-                {% elif question.type == 'multiple' %}
-                    {% for answer in question.answers %}
+                {% elif question.type == 'checkbox' %}
+                    {% for variant in question.variants %}
                         <label>
-                            <input type="checkbox" name="q{{ forloop.parentloop.counter }}"
+                            <input type="checkbox" name="q{{ forloop.parentloop.counter0 }}"
                                    value="{{ forloop.counter0 }}">
-                            {{ answer }}
+                            {{ variant }}
                         </label><br>
                     {% endfor %}
-                {% else %}
-                    <textarea name="q{{ forloop.counter }}"></textarea>
+                {% elif question.type == 'text' %}
+                    <textarea name="q{{ forloop.counter0 }}"></textarea>
                 {% endif %}
             </div>
         {% endfor %}
         <button type="submit">Завершить тест</button>
+        <input type="hidden" name="time_spent" id="time-spent" value="0">
     </form>
     <input type="hidden" id="test-duration" value="{{ test.duration }}">
 
     {% block extra_js %}
-    <script type="module">
-        import TestTimer from '{% static "js/testTimer.js" %}';
+        <script type="module">
+            import TestTimer from '{% static "js/testTimer.js" %}';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const duration = parseInt(document.getElementById('test-duration').value);
-            const timer = new TestTimer(duration, 'test-form', 'timer');
-            timer.init();
-        });
-    </script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const duration = parseInt(document.getElementById('test-duration').value);
+                const timer = new TestTimer(duration, 'test-form', 'timer');
+                timer.init();
+            });
+        </script>
     {% endblock %}
 {% endblock %}

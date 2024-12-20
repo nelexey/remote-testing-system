@@ -205,41 +205,52 @@ export default class TestEditor {
             questions: []
         };
 
-        // Собираем данные о вопросах
+        // Collect questions data
         const questionBlocks = document.querySelectorAll('.question-block');
         questionBlocks.forEach((block, index) => {
             const questionId = block.dataset.questionId;
             const questionData = {
-                id: index + 1,
                 text: formData.get(`questions[${questionId}][text]`),
-                type: formData.get(`questions[${questionId}][type]`),
-                points: parseInt(formData.get(`questions[${questionId}][points]`))
+                type: '',
+                variants: [],
+                answers: []
             };
 
-            switch (questionData.type) {
+            const selectedType = formData.get(`questions[${questionId}][type]`);
+            switch (selectedType) {
                 case 'input':
-                    questionData.correct = formData.get(`questions[${questionId}][correct]`);
+                    questionData.type = 'text';
+                    questionData.variants = [];
+                    questionData.answers = [formData.get(`questions[${questionId}][correct]`)];
                     break;
 
                 case 'radio':
-                case 'checkbox':
-                    questionData.variants = [];
-                    questionData.correct = [];
-
-                    const variants = block.querySelectorAll('.variant-item');
-                    variants.forEach((variant, variantIndex) => {
+                    questionData.type = 'radioButton';
+                    const radioVariants = block.querySelectorAll('.variant-item');
+                    radioVariants.forEach((variant, variantIndex) => {
                         const variantText = formData.get(
                             `questions[${questionId}][variants][${variantIndex}]`
                         );
                         questionData.variants.push(variantText);
+                    });
+                    const correctRadios = block.querySelectorAll('.variant-item input:checked');
+                    correctRadios.forEach((radio) => {
+                        questionData.answers.push(parseInt(radio.value));
+                    });
+                    break;
 
-                        const isCorrect = variant.querySelector(
-                            `input[name="questions[${questionId}][correct]"][value="${variantIndex}"]`
-                        ).checked;
-
-                        if (isCorrect) {
-                            questionData.correct.push(variantIndex);
-                        }
+                case 'checkbox':
+                    questionData.type = 'checkbox';
+                    const checkboxVariants = block.querySelectorAll('.variant-item');
+                    checkboxVariants.forEach((variant, variantIndex) => {
+                        const variantText = formData.get(
+                            `questions[${questionId}][variants][${variantIndex}]`
+                        );
+                        questionData.variants.push(variantText);
+                    });
+                    const correctCheckboxes = block.querySelectorAll('.variant-item input:checked');
+                    correctCheckboxes.forEach((checkbox) => {
+                        questionData.answers.push(parseInt(checkbox.value));
                     });
                     break;
             }
@@ -247,7 +258,10 @@ export default class TestEditor {
             testData.questions.push(questionData);
         });
 
-        // Добавляем JSON в скрытое поле формы
+        // Debug: Log the test data to the console
+        console.log(JSON.stringify(testData, null, 2));
+
+        // Add JSON data to a hidden input field
         let jsonInput = document.getElementById('test-json-input');
         if (!jsonInput) {
             jsonInput = document.createElement('input');
@@ -258,7 +272,7 @@ export default class TestEditor {
         }
         jsonInput.value = JSON.stringify(testData);
 
-        // Отправляем форму
+        // Submit the form
         e.target.submit();
     }
 }

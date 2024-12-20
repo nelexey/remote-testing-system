@@ -43,33 +43,72 @@ def test_detail(request, test_id):
     return render(request, 'tests/test_detail.html', context)
 
 
+def calculate_test_result(test, answers):
+    test_data = test.test
+    total_score = 0
+    max_score = 0
+
+    for idx, question in enumerate(test_data['questions']):
+        q_num = idx
+        q_type = question.get('type', 'unknown')
+        q_points = question.get('points', 1)  # Default to 1 point if not specified
+        correct_answers = question.get('answers', [])
+
+        if q_type == 'text':
+            user_answer = answers.get(f'q{q_num}', '')
+            if user_answer == correct_answers[0]:
+                total_score += q_points
+        elif q_type == 'radioButton':
+            user_answer = answers.get(f'q{q_num}', '')
+            try:
+                user_answer_int = int(user_answer)
+                if user_answer_int in correct_answers:
+                    total_score += q_points
+            except ValueError:
+                pass  # Invalid input, do not award points
+        elif q_type == 'checkbox':
+            user_answers = answers.getlist(f'q{q_num}', [])
+            try:
+                user_answers_int = [int(ans) for ans in user_answers]
+                if set(user_answers_int) == set(correct_answers):
+                    total_score += q_points
+            except ValueError:
+                pass  # Invalid input, do not award points
+        else:
+            pass  # Handle unknown question types, if necessary
+
+        max_score += q_points
+
+    time_spent = int(answers.get('time_spent', 0))
+    return {
+        'score': total_score,
+        'max_score': max_score,
+        'time_spent': time_spent,
+    }
+
 @login_required
 def test_attempt(request, test_id, attempt):
-    """Страница прохождения теста"""
     test = get_object_or_404(Test, id=test_id, is_published=True)
-
-    # Проверка количества попыток
-    attempts = TestStatistics.objects.filter(user=request.user, test=test).count()
+    attempts = TestStatistics.objects.filter(user=request.user.id, test=test).count()
     if attempts >= test.attempts_allowed:
-        messages.error(request, 'Превышено максимальное количество попыток')
-        return redirect('test_detail', test_id=test_id)
+        messages.error(request, 'Exceeded maximum number of attempts')
+        return redirect('tests:test_detail', test_id=test_id)
 
     if request.method == 'POST':
-        # Обработка ответов на тест
-        answers = request.POST.dict()
-        # result = calculate_test_result(test, answers)  # Нужно реализовать эту функцию
-
-        # Сохранение результатов
+        answers = request.POST
+        result = calculate_test_result(test, answers)
+        passed = result['score'] >= 0.5 * result['max_score']
         TestStatistics.objects.create(
             user=request.user,
             test=test,
             result=result['score'],
             max_result=result['max_score'],
             time_spent=result['time_spent'],
-            passed=result['passed'],
+            passed=passed,
             attempt_number=attempts + 1
         )
-        return redirect('test_detail', test_id=test_id)
+        messages.success(request, f'Your score is {result["score"]}/{result["max_score"]}')
+        return redirect('tests:test_detail', test_id=test_id)
 
     context = {
         'test': test,

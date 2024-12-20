@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from tests.models import Test
 from tests.forms import TestCreationForm
+import json
 
 
 @login_required
@@ -26,45 +27,29 @@ def create_test(request, test_id=None):
 
     if request.method == 'POST':
         form = TestCreationForm(request.POST, owner=request.user)
+        test_json = request.POST.get('test_json', '{}')
+        try:
+            test_data = json.loads(test_json)
+        except json.JSONDecodeError:
+            messages.error(request, 'Ошибка в структуре данных теста')
+            return render(request, 'tester_panel/create_test.html', {'form': form})
+
+        if not test_data.get('questions') or not isinstance(test_data.get('questions'), list):
+            messages.error(request, 'Тест должен содержать хотя бы один вопрос')
+            return render(request, 'tester_panel/create_test.html', {'form': form})
+
         if form.is_valid():
             test = form.save(commit=False)
-
-            try:
-                # Получаем JSON-данные теста из формы
-                test_data = json.loads(request.POST.get('test_json', '{}'))
-
-                # Проверяем наличие вопросов
-                if not test_data.get('questions'):
-                    messages.error(request, 'Тест должен содержать хотя бы один вопрос')
-                    return render(request, 'tester_panel/create_test.html', {'form': form})
-
-                # Проверяем структуру каждого вопроса
-                for question in test_data['questions']:
-                    if not all(key in question for key in ['text', 'type', 'points']):
-                        messages.error(request, 'Некорректная структура вопросов')
-                        return render(request, 'tester_panel/create_test.html', {'form': form})
-
-                    # Проверяем наличие вариантов ответов для radio и checkbox
-                    if question['type'] in ['radio', 'checkbox']:
-                        if not question.get('variants') or not question.get('correct'):
-                            messages.error(request, 'Не указаны варианты ответов или правильный ответ')
-                            return render(request, 'tester_panel/create_test.html', {'form': form})
-
-                # Сохраняем JSON в поле test
-                test.test = test_data
-                test.save()
-
-                messages.success(request, 'Тест успешно создан')
-                return redirect('tester_panel:tester_panel')
-
-            except json.JSONDecodeError:
-                messages.error(request, 'Ошибка в структуре данных теста')
-                return render(request, 'tester_panel/create_test.html', {'form': form})
+            test.test = test_data
+            test.save()
+            messages.success(request, 'Тест успешно создан')
+            return redirect('tester_panel:tester_panel')
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме')
     else:
         form = TestCreationForm(owner=request.user)
 
     return render(request, 'tester_panel/create_test.html', {'form': form})
-
 
 @login_required
 def edit_test(request, test_id):
