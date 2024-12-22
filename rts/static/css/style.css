@@ -1,35 +1,31 @@
 /* Global Styles */
 body {
     background-color: #000000; /* Фон страницы (чёрный) */
-    color: #ffffff; /* Основной цвет текста */
+    color: #000000; /* Основной цвет текста */
     font-family: "IBM Plex Mono", serif;
     margin: 0;
     padding: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
-    /*color: #ffffff;*/
-    margin: 0;
+    margin: 0 0 20px;
+    text-transform: uppercase;
+    font-weight: normal;
 }
 
 p {
-    color: #cccccc; /* Вторичный цвет текста */
+    color: #000000; /* Вторичный цвет текста */
     line-height: 1.5;
 }
 
 a {
-    color: #ffffff;
+    color: #000000;
     text-decoration: none;
 }
 
 a:hover {
     color: #ff8400;
 }
-
-a:hover {
-    color: #cccccc;
-}
-
 
 button:hover {
     background-color: #e0e0e0; /* Эффект при наведении */
@@ -50,43 +46,78 @@ input {
 
     background-color: transparent;
     color: black;
-    border: 2px solid black;
-    border-radius: 5px;
-
-    padding: 0 4px;
+    font-size: 1rem;
+    border: 3px solid black;
+    border-radius: 20px;
+    padding: 3px 16px;
 
     &::placeholder {
         color: gray;
+        font-size: 1rem;
     }
 
 / / Стили при фокусе &: focus {
     outline: none;
-    border-color: darkgray;
+    /*border-color: darkgray;*/
 }
 }
 
 button {
-/ / Сброс стилей all: unset;
+    all: unset;
     box-sizing: border-box;
     display: inline-block;
     text-align: center;
     cursor: pointer;
 
-/ / Базовые стили background-color: transparent;
-    color: black;
-    border: 2px solid black;
-    border-radius: 5px;
-    padding: 8px 16px;
-    font-size: 14px;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-
-/ / Стили при наведении &: hover {
     background-color: black;
     color: white;
-} / / Стили при нажатии &: active {
-    background-color: darkgray;
-} / / Стили при фокусе &: focus {
-    outline: none;
-    border-color: gray;
+    border: 3px solid black;
+    border-radius: 20px;
+    padding: 3px 16px;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+
+    text-transform: uppercase;
+
+    &:hover {
+        background-color: #ff8400;
+        border: 3px solid #ff8400;
+        color: black;
+    }
+
+    &:active {
+        /*background-color: darkgray;*/
+    }
+
+    &:focus {
+        outline: none;
+        /*border-color: gray;*/
+    }
 }
+
+select {
+    all: unset;
+    background-color: black;
+    color: white;
+    border: 3px solid black;
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 1rem;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+    text-transform: uppercase;
+
+    &:hover {
+        background-color: #ff8400;
+        border: 3px solid #ff8400;
+        color: black;
+    }
+
+    &:active {
+        /*background-color: darkgray;*/
+    }
+
+    &:focus {
+        outline: none;
+        /*border-color: gray;*/
+    }
 }

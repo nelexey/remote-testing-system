@@ -17,20 +17,20 @@
 }
 
 .login-btn {
-    padding: 2px 14px 0;
-    height: 32px;
+    /*padding: 2px 14px 0;*/
+    /*height: 32px;*/
     width: auto;
     margin-left: 10px;
 
-    background-color: black;
-    border-radius: 10px;
-    border: none;
+    /*background-color: black;*/
+    /*border-radius: 10px;*/
+    /*border: none;*/
 
-    color: white;
-    text-transform: uppercase;
+    /*color: white;*/
+    /*text-transform: uppercase;*/
 }
 
-.login-btn:hover {
-    background-color: #ff8400;
-    color: black;
-}
+/*.login-btn:hover {*/
+/*    background-color: #ff8400;*/
+/*    color: black;*/
+/*}*/

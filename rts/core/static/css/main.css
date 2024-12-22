@@ -102,4 +102,8 @@ a {
     margin: 5% auto; /* Центрирование по горизонтали и отступ сверху/снизу */
     display: flex;
     justify-content: center;
+
+    & p {
+        color: #cccccc;
+    }
 }
