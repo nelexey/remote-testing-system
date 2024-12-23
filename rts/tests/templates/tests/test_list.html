@@ -1,18 +1,24 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}Список тестов{% endblock %}
+
+{% block header %}
+    <link rel="stylesheet" href="{% static 'css/list.css' %}">
+{% endblock %}
 
 {% block content %}
     <h1>Доступные тесты</h1>
-    
+
     <form method="get">
         <input type="text" name="search" placeholder="Поиск...">
-{#        <select name="category">#}
-{#            <option value="">Все категории</option>#}
-{#            {% for category in categories %}#}
-{#                <option value="{{ category }}">{{ category }}</option>#}
-{#            {% endfor %}#}
-{#        </select>#}
+        {#        <select name="category">#}
+        {#            <option value="">Все категории</option>#}
+        {#            {% for category in categories %}#}
+        {#                <option value="{{ category }}">{{ category }}</option>#}
+        {#            {% endfor %}#}
+        {#        </select>#}
         <select name="difficulty">
             <option value="">Все уровни сложности</option>
             <option value="easy">Легкий</option>
@@ -22,14 +28,17 @@
         <button type="submit">Фильтровать</button>
     </form>
 
-    <ul>
-    {% for test in tests %}
-        <li>
-            <a href="{% url 'tests:test_detail' test.id %}">{{ test.title }}</a>
-            ({{ test.category }}, {{ test.get_difficulty_display }})
-        </li>
-    {% empty %}
-        <li>Нет доступных тестов</li>
-    {% endfor %}
-    </ul>
+    <div class="tests-flex">
+        {% for test in tests %}
+            <a href="{% url 'tests:test_detail' test.id %}" class="tests-flex-card">
+                <p class="tests-test-title">{{ test.title }}</p>
+                <div style="display: flex; justify-content: space-between">
+                    <p class="tests-test-cat">{{ test.category }}</p>
+                    <p class="tests-test-diff">{{ test.get_difficulty_display }}</p>
+                </div>
+            </a>
+        {% empty %}
+            <li>Нет доступных тестов</li>
+        {% endfor %}
+    </div>
 {% endblock %}

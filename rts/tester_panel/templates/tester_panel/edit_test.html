@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}Редактирование теста{% endblock %}
 
 {% block content %}
@@ -7,12 +9,21 @@
     <form method="post" id="test-form">
         {% csrf_token %}
         {{ form.as_p }}
-        
+
         <div id="questions-container">
             <!-- Существующие вопросы будут загружены через JavaScript -->
         </div>
-        
+
         <button type="button" id="add-question">Добавить вопрос</button>
         <button type="submit">Сохранить изменения</button>
     </form>
+    {% block extra_js %}
+        <script type="module">
+            import TestEditor from '{% static "js/testEditor.js" %}';
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const editor = new TestEditor();
+            });
+        </script>
+    {% endblock %}
 {% endblock %}

@@ -62,6 +62,23 @@ input {
 }
 }
 
+textarea {
+    all: unset;
+    box-sizing: border-box;
+
+    background-color: transparent;
+    color: black;
+    font-size: 1rem;
+    border: 3px solid black;
+    border-radius: 20px;
+    padding: 3px 16px;
+
+    &::placeholder {
+        color: gray;
+        font-size: 1rem;
+    }
+}
+
 button {
     all: unset;
     box-sizing: border-box;
@@ -120,4 +137,43 @@ select {
         outline: none;
         /*border-color: gray;*/
     }
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 15px;
+    height: 15px;
+    border: 2px solid black;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #ff8400;
+}
+
+/* Radio Button */
+input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 15px;
+    height: 15px;
+    padding: 0;
+    border: 2px solid black;
+    outline: none;
+    cursor: pointer;
+}
+
+input[type="radio"]:checked {
+    background-color: #ff8400;
+}
+
+.form-group {
+    margin: 10px 0;
 }
