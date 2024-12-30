@@ -35,7 +35,7 @@
 }
 
 .panel-tests-flex-card {
-    width: 30%;
+    min-width: 30%;
     background-color: black;
     margin: 1%;
     border-radius: 20px;
@@ -63,4 +63,5 @@
 .panel-test-title {
     font-size: 3rem;
     text-transform: uppercase;
+    margin-right: 10px;
 }
