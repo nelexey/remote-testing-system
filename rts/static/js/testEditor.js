@@ -62,17 +62,17 @@ export default class TestEditor {
                 <!-- Блок для вариантов ответа -->
             </div>
 
-            <div class="form-group">
-                <label for="${pointsId}">Баллы за вопрос:</label>
-                <input type="number" 
-                       id="${pointsId}"
-                       name="questions[${questionId}][points]" 
-                       value="1" 
-                       min="1" 
-                       required
-                       aria-label="Укажите количество баллов за вопрос">
-            </div>
         `;
+            // <div class="form-group">
+            //     <label for="${pointsId}">Баллы за вопрос:</label>
+            //     <input type="number" 
+            //            id="${pointsId}"
+            //            name="questions[${questionId}][points]" 
+            //            value="1" 
+            //            min="1" 
+            //            required
+            //            aria-label="Укажите количество баллов за вопрос">
+            // </div>
 
         container.appendChild(questionDiv);
 

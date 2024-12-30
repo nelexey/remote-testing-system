@@ -68,8 +68,10 @@ def edit_test(request, test_id):
                         'test': test
                     })
 
+
                 for question in test_data['questions']:
-                    if not all(key in question for key in ['text', 'type', 'points']):
+                    # if not all(key in question for key in ['text', 'type', 'points']):
+                    if not all(key in question for key in ['text', 'type']):
                         messages.error(request, 'Некорректная структура вопросов')
                         return render(request, 'tester_panel/edit_test.html', {
                             'form': form,
@@ -123,7 +125,8 @@ def delete_test(request, test_id):
         try:
             test.delete()
             messages.success(request, 'Тест успешно удален')
-            return JsonResponse({'status': 'success'})
+            # return JsonResponse({'status': 'success'})
+            return redirect('tester_panel:delete_test_list')
         except Exception as e:
             return JsonResponse({
                 'status': 'error',
