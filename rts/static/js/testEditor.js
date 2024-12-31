@@ -1,7 +1,81 @@
 export default class TestEditor {
-    constructor() {
+    constructor(testData = {}) {
         this.questionCounter = 0;
-        this.initializeEventListeners();
+        this.existingQuestions = testData.questions || [];
+        
+        const form = document.getElementById('test-form');
+        if (form) {
+            form.addEventListener('submit', (e) => this.handleSubmit(e));
+        }
+
+        const addButton = document.getElementById('add-question');
+        if (addButton) {
+            addButton.addEventListener('click', () => this.addQuestion());
+        }
+
+        requestAnimationFrame(() => {
+            if (this.existingQuestions.length > 0) {
+                this.populateQuestions(this.existingQuestions);
+            }
+        });
+    }
+
+    populateQuestions(questions) {
+        questions.forEach((question, index) => {
+            this.addQuestion();
+            
+            const questionId = this.questionCounter - 1;
+            const questionBlock = document.querySelector(`[data-question-id="${questionId}"]`);
+            if (!questionBlock) return;
+
+            const textArea = questionBlock.querySelector('textarea');
+            textArea.value = question.text;
+
+            const typeSelect = questionBlock.querySelector('select');
+            typeSelect.value = this.getQuestionType(question.type);
+            
+            this.handleTypeChange(questionId);
+
+            if (question.type === 'text' && question.answers && question.answers.length > 0) {
+                setTimeout(() => {
+                    const textInput = questionBlock.querySelector('input[name$="[correct]"]');
+                    if (textInput) {
+                        textInput.value = question.answers[0];
+                    }
+                }, 0);
+            } else if (question.variants) {
+                const variantsList = questionBlock.querySelector('.variants-list');
+                if (variantsList) {
+                    variantsList.innerHTML = '';
+                    question.variants.forEach((variant, variantIndex) => {
+                        this.addVariant(questionId);
+                        const variantInput = questionBlock.querySelector(
+                            `input[name="questions[${questionId}][variants][${variantIndex}]"]`
+                        );
+                        if (variantInput) {
+                            variantInput.value = variant;
+                            if (question.answers && question.answers.includes(variantIndex)) {
+                                const correctInput = variantInput
+                                    .closest('.variant-item')
+                                    .querySelector(`input[type="${typeSelect.value === 'radio' ? 'radio' : 'checkbox'}"]`);
+                                if (correctInput) {
+                                    correctInput.checked = true;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    getQuestionType(type) {
+        const typeMap = {
+            'text': 'input',
+            'radioButton': 'radio',
+            'checkbox': 'checkbox'
+        };
+        return typeMap[type] || type;
     }
 
     initializeEventListeners() {
@@ -63,16 +137,16 @@ export default class TestEditor {
             </div>
 
         `;
-            // <div class="form-group">
-            //     <label for="${pointsId}">Баллы за вопрос:</label>
-            //     <input type="number" 
-            //            id="${pointsId}"
-            //            name="questions[${questionId}][points]" 
-            //            value="1" 
-            //            min="1" 
-            //            required
-            //            aria-label="Укажите количество баллов за вопрос">
-            // </div>
+        // <div class="form-group">
+        //     <label for="${pointsId}">Баллы за вопрос:</label>
+        //     <input type="number"
+        //            id="${pointsId}"
+        //            name="questions[${questionId}][points]"
+        //            value="1"
+        //            min="1"
+        //            required
+        //            aria-label="Укажите количество баллов за вопрос">
+        // </div>
 
         container.appendChild(questionDiv);
 
@@ -192,8 +266,8 @@ export default class TestEditor {
 
     handleSubmit(e) {
         e.preventDefault();
-
-        const formData = new FormData(e.target);
+        const form = e.target;
+        const formData = new FormData(form);
         const testData = {
             title: formData.get('title'),
             description: formData.get('description'),
@@ -205,9 +279,8 @@ export default class TestEditor {
             questions: []
         };
 
-        // Collect questions data
         const questionBlocks = document.querySelectorAll('.question-block');
-        questionBlocks.forEach((block, index) => {
+        questionBlocks.forEach((block) => {
             const questionId = block.dataset.questionId;
             const questionData = {
                 text: formData.get(`questions[${questionId}][text]`),
@@ -220,36 +293,32 @@ export default class TestEditor {
             switch (selectedType) {
                 case 'input':
                     questionData.type = 'text';
-                    questionData.variants = [];
-                    questionData.answers = [formData.get(`questions[${questionId}][correct]`)];
+                    const textAnswer = formData.get(`questions[${questionId}][correct]`);
+                    if (textAnswer) {
+                        questionData.answers = [textAnswer];
+                    }
                     break;
 
                 case 'radio':
                     questionData.type = 'radioButton';
-                    const radioVariants = block.querySelectorAll('.variant-item');
-                    radioVariants.forEach((variant, variantIndex) => {
-                        const variantText = formData.get(
-                            `questions[${questionId}][variants][${variantIndex}]`
-                        );
-                        questionData.variants.push(variantText);
+                    const radioVariants = block.querySelectorAll('.variant-item input[type="text"]');
+                    radioVariants.forEach((variant) => {
+                        questionData.variants.push(variant.value);
                     });
-                    const correctRadios = block.querySelectorAll('.variant-item input:checked');
-                    correctRadios.forEach((radio) => {
-                        questionData.answers.push(parseInt(radio.value));
-                    });
+                    const selectedRadio = block.querySelector('input[type="radio"]:checked');
+                    if (selectedRadio) {
+                        questionData.answers = [parseInt(selectedRadio.value)];
+                    }
                     break;
 
                 case 'checkbox':
                     questionData.type = 'checkbox';
-                    const checkboxVariants = block.querySelectorAll('.variant-item');
-                    checkboxVariants.forEach((variant, variantIndex) => {
-                        const variantText = formData.get(
-                            `questions[${questionId}][variants][${variantIndex}]`
-                        );
-                        questionData.variants.push(variantText);
+                    const checkboxVariants = block.querySelectorAll('.variant-item input[type="text"]');
+                    checkboxVariants.forEach((variant) => {
+                        questionData.variants.push(variant.value);
                     });
-                    const correctCheckboxes = block.querySelectorAll('.variant-item input:checked');
-                    correctCheckboxes.forEach((checkbox) => {
+                    const selectedCheckboxes = block.querySelectorAll('input[type="checkbox"]:checked');
+                    selectedCheckboxes.forEach((checkbox) => {
                         questionData.answers.push(parseInt(checkbox.value));
                     });
                     break;
@@ -258,21 +327,12 @@ export default class TestEditor {
             testData.questions.push(questionData);
         });
 
-        // Debug: Log the test data to the console
-        console.log(JSON.stringify(testData, null, 2));
+        const testJsonInput = document.createElement('input');
+        testJsonInput.type = 'hidden';
+        testJsonInput.name = 'test_json';
+        testJsonInput.value = JSON.stringify(testData);
+        form.appendChild(testJsonInput);
 
-        // Add JSON data to a hidden input field
-        let jsonInput = document.getElementById('test-json-input');
-        if (!jsonInput) {
-            jsonInput = document.createElement('input');
-            jsonInput.type = 'hidden';
-            jsonInput.id = 'test-json-input';
-            jsonInput.name = 'test_json';
-            e.target.appendChild(jsonInput);
-        }
-        jsonInput.value = JSON.stringify(testData);
-
-        // Submit the form
-        e.target.submit();
+        form.submit();
     }
 }
