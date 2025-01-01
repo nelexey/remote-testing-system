@@ -101,6 +101,11 @@ export default class TestEditor {
         const pointsId = `${uniquePrefix}-points`;
 
         questionDiv.innerHTML = `
+            <style>
+                .answers-block {
+                    margin-bottom: 10px;
+                }
+            </style>
             <hr>
             <div class="question-header">
                 <h3>Вопрос ${questionId + 1}</h3>
